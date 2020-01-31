@@ -4,14 +4,17 @@ import za.co.entelect.challenge.entities.*;
 import za.co.entelect.challenge.enums.BuildingType;
 import za.co.entelect.challenge.enums.PlayerType;
 
+import java.util.Optional;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 import static za.co.entelect.challenge.enums.BuildingType.ATTACK;
 import static za.co.entelect.challenge.enums.BuildingType.DEFENSE;
+import static za.co.entelect.challenge.enums.BuildingType.ENERGY;
 
 public class Bot {
     private static final String NOTHING_COMMAND = "";
@@ -57,8 +60,61 @@ public class Bot {
         } else if (hasEnoughEnergyForMostExpensiveBuilding()) {
             return buildRandom();
         } else {
-            return doNothingCommand();
+            return greedyAttack();
         }
+    }
+
+    private List<Integer> checkLane(Player p){
+        Predicate<Building> isAttack = b -> b.buildingType == ATTACK;
+        Predicate<Building> isAlsoDef = b -> b.buildingType == DEFENSE;
+        Predicate<Building> energy = b -> b.buildingType == ENERGY;
+        Predicate<Building> all = isAttack.or(isAlsoDef).or(energy);
+
+        List<Integer> holder = new ArrayList<Integer>();
+
+        for(int i = 0; i < gameHeight; i++){
+            int hold = getAllBuildingsForPlayerRow(opponent.playerType, all, i).size();
+            holder.add(hold);
+        }
+
+        return holder;
+    }
+
+    private String greedyAttack(){
+        List<Integer> enemyData = checkLane(opponent);
+        List<Integer> myData = checkLane(myself);
+        int thinnest = 0;
+
+        for(int i = 0; i < enemyData.size(); i++){
+            if(enemyData.get(i) < enemyData.get(thinnest)){
+                thinnest = i;
+            }
+        }
+
+        return placeBuildingInRowFromBack(ATTACK, thinnest);
+    }
+
+    private boolean isCellEmpty(int x, int y) {
+        Optional<CellStateContainer> cellOptional = gameState.getGameMap().stream()
+                .filter(c -> c.x == x && c.y == y)
+                .findFirst();
+
+        if (cellOptional.isPresent()) {
+            CellStateContainer cell = cellOptional.get();
+            return cell.getBuildings().size() <= 0;
+        } else {
+            System.out.println("Invalid cell selected");
+        }
+        return true;
+    }
+
+    private String placeBuildingInRowFromBack(BuildingType buildingType, int y) {
+        for (int i = 0; i < gameWidth / 2; i++) {
+            if (isCellEmpty(i, y)) {
+                return buildingType.buildCommand(i, y);
+            }
+        }
+        return "";
     }
 
     /**
@@ -178,6 +234,29 @@ public class Bot {
                         && b.getY() == y)
                 .anyMatch(filter);
     }
+
+    private List<Building> getAllBuildingsForPlayerRow(PlayerType playerType, Predicate<Building> filter, int y) {
+        return gameState.getGameMap().stream()
+                .filter(c -> c.cellOwner == playerType && c.y == y)
+                .flatMap(c -> c.getBuildings().stream())
+                .filter(filter)
+                .collect(Collectors.toList());
+    }
+
+    private List<Building> getAllBuildingsForPlayerColumn(PlayerType playerType, Predicate<Building> filter, int x) {
+        return gameState.getGameMap().stream()
+                .filter(c -> c.cellOwner == playerType && c.x == x)
+                .flatMap(c -> c.getBuildings().stream())
+                .filter(filter)
+                .collect(Collectors.toList());
+    }
+
+    // private boolean extensiveBuildingChecker(PlayerType playerType, Predicate<Building> filter, int x, int y) {
+    //     return buildings.stream()
+    //             .filter(b -> b.getPlayerType() == playerType
+    //                     && b.getX() == x && b.getY() == y)
+    //             .anyMatch(filter);
+    // }
 
     /**
      * Can afford building
