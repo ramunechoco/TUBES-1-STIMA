@@ -124,8 +124,16 @@ public class Bot {
                 thinnest = i;
             }
         }
+        if (canAffordBuilding(ATTACK)) {
+            return placeBuildingInRowFromBack(ATTACK, thinnest);
+        }
+        else {
+            return doNothingCommand();
+        } 
+    }
 
-        return placeBuildingInRowFromBack(ATTACK, thinnest);
+    private String greedyEnergy() {
+
     }
 
     private boolean isCellEmpty(int x, int y) {
@@ -189,6 +197,8 @@ public class Bot {
                 .toArray()
                 .length == 3;
     }
+
+
 
     /**
      * Defend row
