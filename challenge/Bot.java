@@ -103,7 +103,7 @@ public class Bot {
         Predicate<Building> isAlsoDef = b -> b.buildingType == DEFENSE;
         Predicate<Building> isEnergy = b -> b.buildingType == ENERGY;
         Predicate<Building> all = isAttack.or(isAlsoDef).or(isEnergy);
-        return getAllBuildingsForPlayerColumn(myself,all, 0).size() == gameHeight;
+        return getAllBuildingsForPlayerColumn(myself.playerType,all, 0).size() == gameHeight;
     }
     
     private String completeEnergyBuilding() {
@@ -146,10 +146,11 @@ public class Bot {
         } 
     }
 
+    /*
     private String greedyEnergy() {
 
     }
-
+    */
     private boolean isCellEmpty(int x, int y) {
         Optional<CellStateContainer> cellOptional = gameState.getGameMap().stream()
                 .filter(c -> c.x == x && c.y == y)
