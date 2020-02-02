@@ -53,37 +53,40 @@ public class Bot {
      * Run
      *
      * @return the result
-     **/
-    public String run() {
-        if (isUnderAttack()) {
-            return defendRow();
-        } else if (hasEnoughEnergyForMostExpensiveBuilding()) {
-            return buildRandom();
-        } else {
-            return greedyAttack();
+     public String run() {
+         if (isUnderAttack()) {
+             return defendRow();
+            } else if (hasEnoughEnergyForMostExpensiveBuilding()) {
+                return buildRandom();
+            } else {
+                return greedyAttack();
+            }
         }
-    }
-    
+    **/
+        
     /**
-     * Run 2
+     * Run
      *
      * @return the result
      **/
-    public String runs() {
+    public String run() {
         if (enemyOpening()) {    
             return greedyAttack();
-        } else if (energyColumnIncomplete()) {
+        } else if (!energyColumnComplete()) {
             return completeEnergyBuilding();
-
-        } 
+        } else if (isUnderAttack()) {
+            return defendRow();
+        } else {
+            return greedyAttack();
+        }
     }
     
     
     private List<Integer> checkLane(Player p){
         Predicate<Building> isAttack = b -> b.buildingType == ATTACK;
         Predicate<Building> isAlsoDef = b -> b.buildingType == DEFENSE;
-        Predicate<Building> energy = b -> b.buildingType == ENERGY;
-        Predicate<Building> all = isAttack.or(isAlsoDef).or(energy);
+        Predicate<Building> isEnergy = b -> b.buildingType == ENERGY;
+        Predicate<Building> all = isAttack.or(isAlsoDef).or(isEnergy);
         
         List<Integer> holder = new ArrayList<Integer>();
         
@@ -95,9 +98,20 @@ public class Bot {
         return holder;
     }
     
-    private boolean energyColumnIncomplete() {
-        Predicate<Building> energy = b -> b.buildingType == ENERGY;
-
+    private boolean energyColumnComplete() {
+        Predicate<Building> isAttack = b -> b.buildingType == ATTACK;
+        Predicate<Building> isAlsoDef = b -> b.buildingType == DEFENSE;
+        Predicate<Building> isEnergy = b -> b.buildingType == ENERGY;
+        Predicate<Building> all = isAttack.or(isAlsoDef).or(isEnergy);
+        return getAllBuildingsForPlayerColumn(myself,all, 0).size() == gameHeight;
+    }
+    
+    private String completeEnergyBuilding() {
+        for (int i=0; i < gameHeight; i++) {
+            if (isCellEmpty(0, i) && canAffordBuilding(ENERGY))
+                return placeBuildingInRowFromBack(ENERGY, i);
+        } 
+        return "";
     }
     
     private boolean enemyOpening() {
@@ -175,9 +189,6 @@ public class Bot {
         return randomBuildingType.buildCommand(randomEmptyCell.x, randomEmptyCell.y);
     }
 
-    private String buildEnergy() {
-        
-    }
     /**
      * Has enough energy for most expensive building
      *
