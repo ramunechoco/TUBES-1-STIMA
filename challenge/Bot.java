@@ -63,22 +63,56 @@ public class Bot {
             return greedyAttack();
         }
     }
+    
+    /**
+     * Run 2
+     *
+     * @return the result
+     **/
+    public String runs() {
+        if (enemyOpening()) {    
+            return greedyAttack();
+        } else if (energyColumnIncomplete()) {
+            return completeEnergyBuilding();
 
+        } 
+    }
+    
+    
     private List<Integer> checkLane(Player p){
         Predicate<Building> isAttack = b -> b.buildingType == ATTACK;
         Predicate<Building> isAlsoDef = b -> b.buildingType == DEFENSE;
         Predicate<Building> energy = b -> b.buildingType == ENERGY;
         Predicate<Building> all = isAttack.or(isAlsoDef).or(energy);
-
+        
         List<Integer> holder = new ArrayList<Integer>();
-
+        
         for(int i = 0; i < gameHeight; i++){
             int hold = getAllBuildingsForPlayerRow(opponent.playerType, all, i).size();
             holder.add(hold);
         }
-
+        
         return holder;
     }
+    
+    private boolean energyColumnIncomplete() {
+        Predicate<Building> energy = b -> b.buildingType == ENERGY;
+
+    }
+    
+    private boolean enemyOpening() {
+        List<Integer> enemyData = checkLane(opponent);
+        boolean open = false;
+        int i = 0;
+        while (!open && i < enemyData.size()) {
+            if (enemyData.get(i) == 0) {
+                open = true;
+            }
+            i++;
+        }
+        return open;
+    }
+
 
     private String greedyAttack(){
         List<Integer> enemyData = checkLane(opponent);
@@ -141,6 +175,9 @@ public class Bot {
         return randomBuildingType.buildCommand(randomEmptyCell.x, randomEmptyCell.y);
     }
 
+    private String buildEnergy() {
+        
+    }
     /**
      * Has enough energy for most expensive building
      *
