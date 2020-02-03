@@ -70,10 +70,10 @@ public class Bot {
      * @return the result
      **/
     public String run() {
-        if (enemyOpening()) {    
-            return greedyAttack();
-        } else if (!energyColumnComplete()) {
+        if (!energyColumnComplete()) {
             return completeEnergyBuilding();
+        } else if (enemyOpening()) {    
+            return greedyAttack();
         } else if (isUnderAttack()) {
             return defendRow();
         } else {
@@ -146,11 +146,6 @@ public class Bot {
         } 
     }
 
-    /*
-    private String greedyEnergy() {
-
-    }
-    */
     private boolean isCellEmpty(int x, int y) {
         Optional<CellStateContainer> cellOptional = gameState.getGameMap().stream()
                 .filter(c -> c.x == x && c.y == y)
