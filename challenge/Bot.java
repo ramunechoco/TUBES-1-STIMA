@@ -72,15 +72,14 @@ public class Bot {
     public String run() {
         if (!energyColumnComplete()) {
             return completeEnergyBuilding();
-        } else if (enemyOpening()) {    
-            return greedyAttack();
         } else if (isUnderAttack()) {
             return defendRow();
+        } else if (enemyOpening()) {    
+            return greedyAttack();
         } else {
             return greedyAttack();
         }
     }
-    
     
     private List<Integer> checkLane(Player p){
         Predicate<Building> isAttack = b -> b.buildingType == ATTACK;
@@ -214,13 +213,12 @@ public class Bot {
      **/
     private String defendRow() {
         for (int i = 0; i < gameHeight; i++) {
-            boolean opponentAttacking = getAnyBuildingsForPlayer(PlayerType.B, b -> b.buildingType == ATTACK, i);
-            if (opponentAttacking && canAffordBuilding(DEFENSE)) {
-                return placeBuildingInRow(DEFENSE, i);
+            int opponentAttacking = getAllBuildingsForPlayerRow(PlayerType.B, b -> b.buildingType == ATTACK, i).size();
+            if ((opponentAttacking >= 2) && canAffordBuilding(DEFENSE)) {
+                return DEFENSE.buildCommand(gameWidth / 2, i);
             }
         }
-
-        return buildRandom();
+        return "";
     }
 
     /**
@@ -229,12 +227,12 @@ public class Bot {
      * @return true if this is under attack
      **/
     private boolean isUnderAttack() {
-        //if enemy has an attack building and i dont have a blocking wall
+        //if enemy has two or more attack buildings on a single row
         for (int i = 0; i < gameHeight; i++) {
-            boolean opponentAttacks = getAnyBuildingsForPlayer(PlayerType.B, building -> building.buildingType == ATTACK, i);
-            boolean myDefense = getAnyBuildingsForPlayer(PlayerType.A, building -> building.buildingType == DEFENSE, i);
+            int opponentAttacks = getAllBuildingsForPlayerRow(PlayerType.B, building -> building.buildingType == ATTACK, i).size();
+            int myDefense = getAllBuildingsForPlayerRow(PlayerType.A, building -> building.buildingType == DEFENSE, i).size();
 
-            if (opponentAttacks && !myDefense) {
+            if ((myDefense == 0) && (opponentAttacks >= 2)) {
                 return true;
             }
         }
