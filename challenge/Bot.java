@@ -70,12 +70,14 @@ public class Bot {
      * @return the result
      **/
     public String run() {
-        if (!energyColumnComplete()) {
+        if (gameDetails.round <= gameHeight*2 && !energyColumnComplete()) {
             return completeEnergyBuilding();
         } else if (isUnderAttack()) {
-            return defendRow();
-        } else if (enemyOpening()) {    
-            return greedyAttack();
+            if(canAffordBuilding(DEFENSE)){
+                return defendRow();
+            } else {
+                return greedyAttack();
+            }
         } else {
             return greedyAttack();
         }
@@ -90,7 +92,7 @@ public class Bot {
         List<Integer> holder = new ArrayList<Integer>();
         
         for(int i = 0; i < gameHeight; i++){
-            int hold = getAllBuildingsForPlayerRow(opponent.playerType, all, i).size();
+            int hold = getAllBuildingsForPlayerRow(p.playerType, all, i).size();
             holder.add(hold);
         }
         
@@ -168,6 +170,8 @@ public class Bot {
         return "";
     }
 
+
+
     /**
      * Build random building
      *
@@ -214,8 +218,9 @@ public class Bot {
     private String defendRow() {
         for (int i = 0; i < gameHeight; i++) {
             int opponentAttacking = getAllBuildingsForPlayerRow(PlayerType.B, b -> b.buildingType == ATTACK, i).size();
-            if ((opponentAttacking >= 2) && canAffordBuilding(DEFENSE)) {
-                return DEFENSE.buildCommand(gameWidth / 2, i);
+            int myDefense = getAllBuildingsForPlayerRow(PlayerType.A, building -> building.buildingType == DEFENSE, i).size();
+            if ((opponentAttacking >= 2) && canAffordBuilding(DEFENSE) && (myDefense <= 2)) {
+                return placeBuildingInRowFromFront(DEFENSE, i);
             }
         }
         return "";
@@ -232,7 +237,7 @@ public class Bot {
             int opponentAttacks = getAllBuildingsForPlayerRow(PlayerType.B, building -> building.buildingType == ATTACK, i).size();
             int myDefense = getAllBuildingsForPlayerRow(PlayerType.A, building -> building.buildingType == DEFENSE, i).size();
 
-            if ((myDefense == 0) && (opponentAttacks >= 2)) {
+            if ((myDefense == 0) && (opponentAttacks >= 1)) {
                 return true;
             }
         }
@@ -268,6 +273,22 @@ public class Bot {
 
         CellStateContainer randomEmptyCell = getRandomElementOfList(emptyCells);
         return buildingType.buildCommand(randomEmptyCell.x, randomEmptyCell.y);
+    }
+
+    /**
+     * Place building in row y nearest to the front
+     *
+     * @param buildingType the building type
+     * @param y            the y
+     * @return the result
+     **/
+    private String placeBuildingInRowFromFront(BuildingType buildingType, int y) {
+        for (int i = (gameWidth / 2) - 1; i >= 0; i--) {
+            if (isCellEmpty(i, y)) {
+                return buildingType.buildCommand(i, y);
+            }
+        }
+        return "";
     }
 
     /**
