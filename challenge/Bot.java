@@ -72,8 +72,6 @@ public class Bot {
     public String run() {
         if (!energyColumnComplete()) {
             return completeEnergyBuilding();
-        } else if (enemyOpening()) {    
-            return greedyAttack();
         } else if (isUnderAttack()) {
             return defendRow();
         } else {
