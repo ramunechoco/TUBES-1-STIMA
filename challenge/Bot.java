@@ -127,10 +127,10 @@ public class Bot {
         List<Integer> myData = checkLane(myself);
         int thinnest = 0;
 
-        for(int i = 0; i < enemyData.size(); i++){
-            if(enemyData.get(i) < enemyData.get(thinnest)){
-                thinnest = i;
-            }
+        for(int i = 0; i < enemyData.size(); i++){  
+            if ((enemyData.get(i) < enemyData.get(thinnest)) && (myData.get(i) < 8)){
+                    thinnest = i;
+                }
         }
         if (canAffordBuilding(ATTACK)) {
             return placeBuildingInRowFromBack(ATTACK, thinnest);
